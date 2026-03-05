@@ -8,12 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONUTF8: 1
+      PYTHONIOENCODING: utf-8
       LANG: en_US.UTF-8
     steps:
       - name: Checkout do Codigo
         uses: actions/checkout@v4
 
-      - name: Setup Python e Java
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -29,21 +30,24 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Instalar Libs e Fix Unicode
+      - name: Instalar Libs Atualizadas
         run: |
-          pip install flet==0.23.2 reportlab==4.4.10 pillow==12.1.1
-          # Injeção para evitar erro de 'unicode' no ReportLab
+          # Liberamos a versao do flet para corrigir o bug interno de leitura
+          pip install --upgrade flet reportlab pillow
+          pip install --upgrade requests urllib3 charset-normalizer chardet
+          # Resolve erro do ReportLab
           SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
           echo "import builtins; builtins.unicode = str" > $SITE_PACKAGES/sitecustomize.py
 
-      - name: Limpeza Industrial de Encoding
+      - name: Vacina contra Erros de Leitura
         run: |
-          # Converte arquivos Windows para o padrão Linux (LF) e limpa o flet.toml
-          find . -type f -name "*.py" -o -name "*.toml" -o -name "*.txt" | xargs sed -i 's/\r$//'
+          # 1. Encontra qualquer arquivo com 0 bytes e preenche com um comentário para o Flet não travar
+          find . -type f -empty -print -exec sh -c 'echo "# vazio" > {}' \;
+          # 2. Converte arquivos de Windows para o padrão do Linux
+          find . -type f -name "*.py" -o -name "*.toml" -o -name "*.txt" | xargs sed -i 's/\r$//' || true
 
       - name: Executar Build APK
         run: |
-          export PYTHONUTF8=1
           flet build apk --verbose
 
       - name: Upload do Instalador
