@@ -5,13 +5,11 @@ Arquivo principal do Sistema RDO Multiempresa
 """
 
 # Importe a variável blindada lá no topo do seu base.py
-from config import PASTA_ATIVOS
-
 import flet as ft
 import os
 import shutil
 from pathlib import Path
-import flet as ft
+from config import PASTA_ATIVOS
 
 def exportar_logos_para_galeria(page: ft.Page):
     try:
@@ -28,10 +26,16 @@ def exportar_logos_para_galeria(page: ft.Page):
             "logo5.png", "logo6.png", "logo7.png", "logo8.png"
         ] 
 
+        # --- A CORREÇÃO ESTÁ AQUI ---
+        # Descobre o caminho REAL de onde este arquivo (base.py) está instalado no celular
+        diretorio_atual = Path(__file__).parent.resolve()
+        pasta_assets = diretorio_atual / "assets"
+        # ----------------------------
+
         copiados = 0
         for nome_logo in logos:
             destino_arquivo = pasta_destino / nome_logo
-            origem_arquivo = Path("assets") / nome_logo # Volta a usar o caminho simples e seguro
+            origem_arquivo = pasta_assets / nome_logo # Agora usa o GPS absoluto
             
             if origem_arquivo.exists() and not destino_arquivo.exists():
                 shutil.copy(origem_arquivo, destino_arquivo)
@@ -39,16 +43,15 @@ def exportar_logos_para_galeria(page: ft.Page):
         
         # Só exibe aviso SE a página já estiver carregada e copiou algo
         if copiados > 0:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Sucesso! {copiados} logos na Galeria.", color=ft.colors.WHITE), bgcolor=ft.colors.GREEN_700)
+            page.snack_bar = ft.SnackBar(ft.Text(f"Sucesso! {copiados} logos copiadas para o celular.", color=ft.colors.WHITE), bgcolor=ft.colors.GREEN_700)
             page.snack_bar.open = True
             page.update()
 
     except Exception as e:
         # Mostra o erro sem travar a tela
-        page.snack_bar = ft.SnackBar(ft.Text(f"Erro Galeria: {e}", color=ft.colors.WHITE), bgcolor=ft.colors.RED_900, duration=5000)
+        page.snack_bar = ft.SnackBar(ft.Text(f"Erro ao extrair logos: {e}", color=ft.colors.WHITE), bgcolor=ft.colors.RED_900, duration=5000)
         page.snack_bar.open = True
         page.update()
-
 
 # ==========================================================
 # 2. AQUI COMEÇA O CORAÇÃO DO SEU APLICATIVO
@@ -220,4 +223,5 @@ if __name__ == "__main__":
         target=main,
         assets_dir="assets" # Voltou para a pasta original do GitHub!
     )
+
 
