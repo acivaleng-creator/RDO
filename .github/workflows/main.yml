@@ -1,4 +1,4 @@
-name: Compilar RDO Android
+name: Build RDO Oficial
 
 on:
   workflow_dispatch:
@@ -9,17 +9,16 @@ jobs:
     env:
       PYTHONUTF8: 1
       LANG: en_US.UTF-8
-      LC_ALL: en_US.UTF-8
     steps:
-      - name: Checkout
+      - name: Checkout do Codigo
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
+      - name: Setup Python e Java
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Setup Java 17
+      
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -30,25 +29,25 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Instalar Dependencias e Fix Unicode
+      - name: Instalar Libs e Fix Unicode
         run: |
-          pip install -r requirements.txt
-          # Resolve erro de unicode para geracao de PDFs
+          pip install flet==0.23.2 reportlab==4.4.10 pillow==12.1.1
+          # Injeção para evitar erro de 'unicode' no ReportLab
           SITE_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
           echo "import builtins; builtins.unicode = str" > $SITE_PACKAGES/sitecustomize.py
 
-      - name: Limpeza Bruta de Arquivos
+      - name: Limpeza Industrial de Encoding
         run: |
-          # Remove lixo do Windows que causa erro de encoding
+          # Converte arquivos Windows para o padrão Linux (LF) e limpa o flet.toml
           find . -type f -name "*.py" -o -name "*.toml" -o -name "*.txt" | xargs sed -i 's/\r$//'
 
-      - name: Executar Build
+      - name: Executar Build APK
         run: |
           export PYTHONUTF8=1
           flet build apk --verbose
 
-      - name: Upload APK
+      - name: Upload do Instalador
         uses: actions/upload-artifact@v4
         with:
-          name: RDO_Grupo_Instalador
+          name: RDO_Grupo_App
           path: build/apk/*.apk
