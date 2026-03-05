@@ -216,7 +216,8 @@ def main(page: ft.Page):
 # ==========================================================
 
 if __name__ == "__main__":
-    ft.app(
+   ft.app(
         target=main,
-        assets_dir=PASTA_ATIVOS # O Flet agora entende a pasta blindada!
+        assets_dir="assets" # Voltou para a pasta original do GitHub!
     )
+
